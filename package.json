@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "node-module": "^1.0.1"
+  },
+  "name": "weather-and-news-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SineMag/Weather-and-News-Dashboard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SineMag/Weather-and-News-Dashboard/issues"
+  },
+  "homepage": "https://github.com/SineMag/Weather-and-News-Dashboard#readme"
+}
