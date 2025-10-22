@@ -11,6 +11,7 @@ async function fetchData(url: string): Promise<any> {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const data = await response.json();
     return data;
   } catch (error) {
@@ -131,3 +132,12 @@ async function fetchWithAdvancedErrorHandling(): Promise<{
     console.log(`Fetch attempt completed in ${duration}ms`);
   }
 }
+
+export {
+  fetchData,
+  fetchWeatherAndNewsSequential,
+  fetchWeatherAndNewsParallel,
+  fetchWeatherAndNewsRace,
+  fetchWeatherAndNewsAsync,
+  fetchWithAdvancedErrorHandling,
+};

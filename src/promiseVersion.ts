@@ -76,3 +76,11 @@ function fetchWeatherAndNewsPromises(): Promise<{ weather: any; news: any }> {
   // Using Promise.all() as the default for the UI (most practical)
   return fetchWeatherAndNewsPromiseAll();
 }
+
+export {
+  fetchData,
+  fetchWeatherAndNewsPromiseChain,
+  fetchWeatherAndNewsPromiseAll,
+  fetchWeatherAndNewsPromiseRace,
+  fetchWeatherAndNewsPromises,
+};
