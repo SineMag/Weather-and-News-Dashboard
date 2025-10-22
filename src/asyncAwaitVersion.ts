@@ -1,143 +1,149 @@
+import * as https from 'https';
+import type { IncomingMessage } from 'http';
+
+interface WeatherResponse {
+    latitude: number;
+    longitude: number;
+    generationtime_ms: number;
+    utc_offset_seconds: number;
+    timezone: string;
+    timezone_abbreviation: string;
+    elevation: number;
+    current_weather: {
+        temperature: number;
+        windspeed: number;
+        winddirection: number;
+        weathercode: number;
+        time: string;
+    };
+}
+
+interface NewsResponse {
+    posts: Array<{
+        id: number;
+        title: string;
+        body: string;
+    }>;
+    total: number;
+    skip: number;
+    limit: number;
+}
+
 const API_URLS = {
-  weather:
-    "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current_weather=true",
-  news: "https://dummyjson.com/posts",
+    weather: "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current_weather=true&timezone=auto",
+    news: "https://dummyjson.com/posts"
 };
 
 // Helper function to fetch data using async/await
-async function fetchData(url: string): Promise<any> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error(`Error fetching data from ${url}:`, error);
-    throw error;
-  }
+async function fetchData<T>(url: string): Promise<T> {
+    return new Promise((resolve, reject) => {
+        https.get(url, (res: IncomingMessage) => {
+            const { statusCode } = res;
+            let rawData = '';
+
+            if (!statusCode || statusCode < 200 || statusCode >= 300) {
+                res.resume(); // Consume response data to free up memory
+                reject(new Error(`Request failed with status code: ${statusCode}`));
+                return;
+            }
+
+            res.setEncoding('utf8');
+            res.on('data', (chunk: string) => rawData += chunk);
+            res.on('end', () => {
+                try {
+                    const parsedData = JSON.parse(rawData);
+                    resolve(parsedData);
+                } catch (e) {
+                    reject(new Error(`Error parsing JSON: ${e instanceof Error ? e.message : 'Unknown error'}`));
+                }
+            });
+        }).on('error', (error: Error) => {
+            reject(new Error(`Request failed: ${error.message}`));
+        });
+    });
 }
 
 // Sequential approach: fetch weather first, then news
 async function fetchWeatherAndNewsSequential(): Promise<{
-  weather: any;
-  news: any;
+    weather: WeatherResponse;
+    news: NewsResponse;
 }> {
-  try {
-    console.log("Fetching weather data (Sequential)...");
-    const weatherData = await fetchData(API_URLS.weather);
-    console.log("Weather data received:", weatherData);
-
-    console.log("Fetching news data (Sequential)...");
-    const newsData = await fetchData(API_URLS.news);
-    console.log("News data received:", newsData);
-
-    return { weather: weatherData, news: newsData };
-  } catch (error) {
-    console.error("Error in sequential fetch:", error);
-    throw new Error(
-      `Failed to fetch data: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
-    );
-  }
+    try {
+        // First, fetch weather data
+        const weatherData = await fetchData<WeatherResponse>(API_URLS.weather);
+        
+        // Then fetch news data
+        const newsData = await fetchData<NewsResponse>(API_URLS.news);
+        
+        return { weather: weatherData, news: newsData };
+    } catch (error) {
+        throw new Error(`Failed to fetch data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
 }
 
 // Parallel approach: fetch both simultaneously using Promise.all with async/await
 async function fetchWeatherAndNewsParallel(): Promise<{
-  weather: any;
-  news: any;
+    weather: WeatherResponse;
+    news: NewsResponse;
 }> {
-  try {
-    console.log(
-      "Fetching weather and news data in parallel (Async/Await + Promise.all)..."
-    );
+    try {
+        // Fetch both in parallel
+        const [weatherData, newsData] = await Promise.all([
+            fetchData<WeatherResponse>(API_URLS.weather),
+            fetchData<NewsResponse>(API_URLS.news)
+        ]);
 
-    const [weatherData, newsData] = await Promise.all([
-      fetchData(API_URLS.weather),
-      fetchData(API_URLS.news),
-    ]);
-
-    console.log("All data fetched successfully");
-    console.log("Weather:", weatherData);
-    console.log("News:", newsData);
-
-    return { weather: weatherData, news: newsData };
-  } catch (error) {
-    console.error("Error in parallel fetch:", error);
-    throw new Error(
-      `Failed to fetch data: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
-    );
-  }
+        return { weather: weatherData, news: newsData };
+    } catch (error) {
+        throw new Error(`Failed to fetch data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
 }
 
-// Using Promise.race with async/await
-async function fetchWeatherAndNewsRace(): Promise<any> {
-  try {
-    console.log("Racing weather vs news (Async/Await + Promise.race)...");
+// Helper function to display the fetched data
+function displayData(data: { weather: WeatherResponse; news: NewsResponse }): void {
+    console.log('\nWeather Information:');
+    console.log(`Temperature: ${data.weather.current_weather.temperature}°C`);
+    console.log(`Wind Speed: ${data.weather.current_weather.windspeed} km/h`);
+    console.log(`Wind Direction: ${data.weather.current_weather.winddirection}°`);
+    console.log(`Weather Code: ${data.weather.current_weather.weathercode}`);
+    console.log(`Last Updated: ${data.weather.current_weather.time}`);
 
-    const result = await Promise.race([
-      fetchData(API_URLS.weather).then((data) => ({ type: "weather", data })),
-      fetchData(API_URLS.news).then((data) => ({ type: "news", data })),
-    ]);
-
-    console.log("First result received:", result.type);
-    console.log("Data:", result.data);
-
-    return result;
-  } catch (error) {
-    console.error("Error in race:", error);
-    throw new Error(
-      `Failed to fetch data: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
-    );
-  }
+    console.log('\nLatest News:');
+    data.news.posts.slice(0, 3).forEach((post, index) => {
+        console.log(`\n${index + 1}. ${post.title}`);
+        console.log(`   ${post.body.slice(0, 100)}...`);
+    });
 }
 
 // Main function using async/await (parallel for best performance)
-async function fetchWeatherAndNewsAsync(): Promise<{
-  weather: any;
-  news: any;
-}> {
-  return fetchWeatherAndNewsParallel();
-}
-
-// Error handling example with try-catch-finally
 async function fetchWithAdvancedErrorHandling(): Promise<{
-  weather: any;
-  news: any;
+    weather: WeatherResponse;
+    news: NewsResponse;
 } | null> {
-  let startTime = Date.now();
+    const startTime = Date.now();
 
-  try {
-    console.log("Starting fetch with advanced error handling...");
-    const data = await fetchWeatherAndNewsParallel();
-    return data;
-  } catch (error) {
-    if (error instanceof TypeError) {
-      console.error("Network error - check your internet connection");
-    } else if (error instanceof Error) {
-      console.error("Error message:", error.message);
-    } else {
-      console.error("Unknown error occurred");
+    try {
+        console.log("Starting fetch with advanced error handling...");
+        const data = await fetchWeatherAndNewsParallel();
+        return data;
+    } catch (error) {
+        if (error instanceof TypeError) {
+            console.error("Network error - check your internet connection");
+        } else if (error instanceof Error) {
+            console.error("Error message:", error.message);
+        } else {
+            console.error("Unknown error occurred");
+        }
+        return null;
+    } finally {
+        const duration = Date.now() - startTime;
+        console.log(`Fetch attempt completed in ${duration}ms`);
     }
-    return null;
-  } finally {
-    const duration = Date.now() - startTime;
-    console.log(`Fetch attempt completed in ${duration}ms`);
-  }
 }
 
 export {
-  fetchData,
-  fetchWeatherAndNewsSequential,
-  fetchWeatherAndNewsParallel,
-  fetchWeatherAndNewsRace,
-  fetchWeatherAndNewsAsync,
-  fetchWithAdvancedErrorHandling,
+    fetchWeatherAndNewsSequential,
+    fetchWeatherAndNewsParallel,
+    fetchWithAdvancedErrorHandling,
+    displayData
 };
