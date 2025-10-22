@@ -131,6 +131,98 @@ Dependencies:
 - `@types/node`: TypeScript definitions for Node.js
 - Node.js built-in `https` module for HTTP requests
 
+## Sample Outputs
+
+### Callback Version Output
+
+```
+Weather Information:
+Temperature: 15.2°C
+Wind Speed: 12.5 km/h
+Wind Direction: 280°
+Weather Code: 2
+Last Updated: 2025-10-22T15:30:00Z
+
+Latest News:
+1. His mother had always taught him not to let a day go by without learning something new
+   A peaceful morning was what he expected when he went on his daily jog. He had been jogging for years and ...
+
+2. He was an expert but not in a discipline that anyone could fully appreciate
+   He knew all about applying discovery techniques and research methods to help him arrive at the right con...
+
+3. It was a simple tip of the hat in passing that changed everything
+   Sometimes the smallest gestures can have the biggest impact. That's what Sarah discovered on that autumn...
+```
+
+### Promise Version Output (using Promise.all)
+
+```
+Starting Promise.all() - fetching weather and news simultaneously...
+All data fetched with Promise.all()
+
+Weather Information:
+Temperature: 15.2°C
+Wind Speed: 12.5 km/h
+Wind Direction: 280°
+Weather Code: 2
+Last Updated: 2025-10-22T15:30:00Z
+
+Latest News:
+1. His mother had always taught him not to let a day go by without learning something new
+   A peaceful morning was what he expected when he went on his daily jog. He had been jogging for years and ...
+
+2. He was an expert but not in a discipline that anyone could fully appreciate
+   He knew all about applying discovery techniques and research methods to help him arrive at the right con...
+
+3. It was a simple tip of the hat in passing that changed everything
+   Sometimes the smallest gestures can have the biggest impact. That's what Sarah discovered on that autumn...
+```
+
+### Async/Await Version Output (with timing comparison)
+
+```
+=== Sequential Fetching ===
+Sequential: 824ms
+
+Weather Information:
+Temperature: 15.2°C
+Wind Speed: 12.5 km/h
+Wind Direction: 280°
+Weather Code: 2
+Last Updated: 2025-10-22T15:30:00Z
+
+Latest News:
+1. His mother had always taught him not to let a day go by without learning something new
+   A peaceful morning was what he expected when he went on his daily jog. He had been jogging for years and ...
+
+=== Parallel Fetching ===
+Parallel: 412ms
+
+Weather Information:
+Temperature: 15.2°C
+Wind Speed: 12.5 km/h
+Wind Direction: 280°
+Weather Code: 2
+Last Updated: 2025-10-22T15:30:00Z
+
+Latest News:
+1. His mother had always taught him not to let a day go by without learning something new
+   A peaceful morning was what he expected when he went on his daily jog. He had been jogging for years and ...
+```
+
+### Error Handling Examples
+
+```
+// Network Error
+Error: Request failed: getaddrinfo ENOTFOUND api.open-meteo.com
+
+// Invalid Response
+Error: Request failed with status code: 404
+
+// JSON Parsing Error
+Error: Error parsing JSON: Unexpected token < in JSON at position 0
+```
+
 ## Future Improvements
 
 Potential enhancements:
