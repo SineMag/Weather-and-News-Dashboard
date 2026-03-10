@@ -1,3 +1,5 @@
+<img src="https://socialify.git.ci/SineMag/Weather-and-News-Dashboard/image?language=1&owner=1&name=1&stargazers=1&theme=Light" alt="Weather-and-News-Dashboard" width="640" height="320" />
+
 # Weather and News Dashboard
 
 This project demonstrates different approaches to handling asynchronous operations in TypeScript/Node.js by fetching weather data and news articles. It implements the same functionality using three different patterns: callbacks, promises, and async/await.
